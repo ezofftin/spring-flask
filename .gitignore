@@ -1,0 +1,25 @@
+# 빌드 폴더
+/target/*
+!target/flask_chart.war
+
+# 이클립스/STS
+*.classpath
+*.project
+.settings/
+.springBeans
+.apt_generated/
+.factorypath
+
+# IntelliJ 대비
+.idea/
+*.iml
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Docker 관련
+*.log
+
+# OS 생성 파일
+.DS_Store

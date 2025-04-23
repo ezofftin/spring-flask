@@ -1,0 +1,47 @@
+services:
+  spring-app:
+    build: . #Dockerfile 기준으로 이미지를 만든다는 의미
+    container_name: spring-app
+    ports:
+      - "8089:8080"
+    volumes: # 로컬에서 빌드된 *.war파일을 컨테이너의 tomcat폴더에 Root.war로 배포(연결)
+      - ./target/flask_chart.war:/usr/local/tomcat/webapps/ROOT.war
+    depends_on: # db서비스가 먼저 실행되어야 spring-app이 시작됨(순서를 정의)
+      - db # 서비스명
+
+  db: # db 서비스(MySQL)
+    image: mysql:8.0 # msyql 8.0을 사용(로컬에 없으면 다운로드)
+    container_name: spring-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1212 #root 비밀번호
+      MYSQL_DATABASE: sample # 생성할 데이터베이스
+      MYSQL_USER: testUser # 유저
+      MYSQL_PASSWORD: 1212
+    ports: 
+      - "3307:3306"
+    volumes:
+      - db-data:/var/lib/mysql # db-data 라는 Docker 볼륨을 Mysql저장소와 연결
+      # 덤프파일을 복사해주면 자동실행되면서 데이터생성
+      - ./sample.sql:/docker-entrypoint-initdb.d/sample.sql 
+    command: # Mysql 시작시 사용할 옵션 (8.0 인증방식, 문자셋 설정, 정렬방식 설정)
+      --default-authentication-plugin=mysql_native_password 
+      --character-set-server=utf8mb4 
+      --collation-server=utf8mb4_general_ci  
+
+  flask-app:
+    build:
+      context: ./flask-app # flask-app폴더안의 Dockerfile을 사용
+    container_name: flask-app
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./flask-app:/app # 로컬 flask-app 폴더 --> 컨테이너 /app 공유
+    command: python spring_app.py # spring_app.py 실행
+
+    depends_on: # mysql을 사용하는 경우(안쓰는 경우에도 무관)
+      - db 
+
+volumes: # db-data이름으로 볼륨을 만들겠다는 선언
+  db-data:
+  
+  
